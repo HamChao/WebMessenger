@@ -15,6 +15,7 @@
   "homepage": "https://github.com/HamChao/WebMessenger",
   "dependencies": {
     "express": "^4.13.4",
+    "node-markdown": "^0.1.1",
     "socket.io": "^1.4.5"
   }
 }

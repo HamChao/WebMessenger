@@ -3,16 +3,35 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Web Messenger</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<div class="chat-panel">
-		<div id="chat-body">
-			
+	<div class="container">
+		<h1 class="text-center">Web Messenger</h1>
+		<div class="chat-panel">
+			<div class="row">
+				<div class="col-md-2">
+					<div class="chat-left" id="chatter_list">
+						
+					</div>
+				</div>
+				<div class="col-md-10">
+					<div class="chat-right">
+						<div class="chat-body">
+							<ul class="list-unstyled" id="chat-list">
+							</ul>
+						</div>
+						<div class="chat-footer">
+							<form id="chat_form">
+								<input type="text" id="message_input">
+								<input type="submit">
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
-		<form id="chat_form">
-			<input type="text" id="message_input">
-			<input type="submit">
-		</form>
 	</div>
 
 	<script src="socket.io/socket.io.js"></script>
@@ -24,12 +43,20 @@
 			server.emit('join', username)
 		});
 		server.on('messages', function(message){
-			$('#chat-body').append('<p>' + message + '</p>');
+			$('#chat-list').append(message);
+		});
+		server.on('add chatter', function(username){
+			$('#chatter_list').append("<p id='"+username+"'>"+username+"</p>");
+		})
+		server.on('remove chatter', function(username){
+			$('#chatter_list p#'+username).remove();
 		});
 		$('#chat_form').submit(function(e){
 			var message = $('#message_input').val();
-			server.emit('messages', message);
-			$('#message_input').val('');
+			if(message != ''){
+				server.emit('messages', message);
+				$('#message_input').val('');
+			}
 			return false;
 		});
 	</script>
