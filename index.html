@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Web Messenger</title>
+</head>
+<body>
+	<form id="chat_form">
+		<input type="text" id="message_input">
+		<input type="submit">
+	</form>
+
+	<script src="socket.io/socket.io.js"></script>
+	<script src="//code.jquery.com/jquery-latest.min.js"></script>
+	<script>
+		var server = io.connect('http://localhost:8080');
+	</script>
+</body>
+</html>

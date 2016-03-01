@@ -1,0 +1,20 @@
+{
+  "name": "web-messenger",
+  "version": "1.0.0",
+  "description": "Simple Web Messenger through Node.js",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HamChao/WebMessenger.git"
+  },
+  "author": "HamChao",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HamChao/WebMessenger/issues"
+  },
+  "homepage": "https://github.com/HamChao/WebMessenger",
+  "dependencies": {
+    "express": "^4.13.4",
+    "socket.io": "^1.4.5"
+  }
+}
