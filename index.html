@@ -5,15 +5,33 @@
 	<title>Web Messenger</title>
 </head>
 <body>
-	<form id="chat_form">
-		<input type="text" id="message_input">
-		<input type="submit">
-	</form>
+	<div class="chat-panel">
+		<div id="chat-body">
+			
+		</div>
+		<form id="chat_form">
+			<input type="text" id="message_input">
+			<input type="submit">
+		</form>
+	</div>
 
 	<script src="socket.io/socket.io.js"></script>
 	<script src="//code.jquery.com/jquery-latest.min.js"></script>
 	<script>
 		var server = io.connect('http://localhost:8080');
+		server.on('connect', function(){
+			username = prompt("What is your username?");
+			server.emit('join', username)
+		});
+		server.on('messages', function(message){
+			$('#chat-body').append('<p>' + message + '</p>');
+		});
+		$('#chat_form').submit(function(e){
+			var message = $('#message_input').val();
+			server.emit('messages', message);
+			$('#message_input').val('');
+			return false;
+		});
 	</script>
 </body>
 </html>
