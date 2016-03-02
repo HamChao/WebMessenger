@@ -6,11 +6,12 @@ var io = require('socket.io')(server);
 // Store all CSS in css folder
 app.use(express.static('css'));
 
-// For conver markdown
+// For convert to markdown
 var md = require("node-markdown").Markdown;
 
 // Store chat history
 var messages = [];
+// Store users
 var users = [];
 
 // Store chat history method
@@ -24,9 +25,11 @@ var storeMsg = function(author, msg){
 	}
 }
 
+// Store user method
 var storeUser = function(username){
 	users.push({username: username});
 }
+// Remove user Method
 var removeUser = function(username){
 	for (i=0; i<users.length; i++){
 		if(users[i].username == username){
@@ -72,6 +75,7 @@ io.on('connection', function(client){
 		storeUser(username);
 	});
 
+	// Remove user when disconnect
 	client.on('disconnect', function(){
 		console.log(client.username);
 		client.emit('remove chatter', client.username);
@@ -87,3 +91,27 @@ app.get('/', function(request, response){
 });
 
 server.listen(8080);
+
+// For upload
+var multer = require('multer');
+
+// Upload
+var storage =   multer.diskStorage({
+  destination: function (req, file, callback) {
+    callback(null, './uploads');
+  },
+  filename: function (req, file, callback) {
+    callback(null, file.fieldname + '-' + Date.now());
+  }
+});
+var upload = multer({ storage : storage}).single('chat-attached');
+
+app.post('/api/image',function(req,res){
+    upload(req,res,function(err) {
+        if(err) {
+            return res.end("Error uploading file.");
+        }
+        res.end("File is uploaded");
+    });
+});
+

@@ -23,8 +23,9 @@
 							</ul>
 						</div>
 						<div class="chat-footer">
-							<form id="chat_form">
+							<form action="/api/image" id="chat_form" method="post" enctype="multipart/form-data">
 								<input type="text" id="message_input">
+								<input type="file" name="chat-attached" id="attached">
 								<input type="submit">
 							</form>
 						</div>
@@ -39,7 +40,10 @@
 	<script>
 		var server = io.connect('http://localhost:8080');
 		server.on('connect', function(){
-			username = prompt("What is your username?");
+			var username = '';
+			while(username == ''){
+				username = prompt("What is your username?");
+			}
 			server.emit('join', username)
 		});
 		server.on('messages', function(message){
@@ -56,8 +60,8 @@
 			if(message != ''){
 				server.emit('messages', message);
 				$('#message_input').val('');
+				return false;
 			}
-			return false;
 		});
 	</script>
 </body>
