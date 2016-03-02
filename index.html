@@ -23,9 +23,10 @@
 							</ul>
 						</div>
 						<div class="chat-footer">
-							<form action="/api/image" id="chat_form" method="post" enctype="multipart/form-data">
+							<form action="/api/uploadImage" id="chat_form" method="post" enctype="multipart/form-data">
 								<input type="text" id="message_input">
-								<input type="file" name="chat-attached" id="attached">
+								<input type="file" name="attached" id="attached">
+								<input type="hidden" name="username" value="">
 								<input type="submit">
 								<span id = "status"></span>
 							</form>
@@ -46,6 +47,7 @@
 			while(username == ''){
 				username = prompt("What is your username?");
 			}
+			$('input[name=username]').val(username);
 			server.emit('join', username)
 		});
 		server.on('messages', function(message){
@@ -59,22 +61,22 @@
 		});
 		$('#chat_form').submit(function(e){
 			var message = $('#message_input').val();
+			var attached = $('#attached').val();
 			if(message != ''){
 				server.emit('messages', message);
 				$('#message_input').val('');
-			}
-			
-			$("#status").empty().text("File is uploading...");
-		    $(this).ajaxSubmit({
-		        error: function(xhr) {
-				    status('Error: ' + xhr.status);
-		        },
+			} else if (attached != '') {
+				$("#status").empty().text("File is uploading...");
+			    $(this).ajaxSubmit({
+			        error: function(xhr) {
+					    status('Error: ' + xhr.status);
+			        },
 
-		        success: function(response) {
-				    $("#status").empty().text(response);
-		            console.log(response);
-		        }
-		    });
+			        success: function(response) {
+					    $("#status").empty().text(response);
+			        }
+			    });
+			}
 			return false;
 		});
 	</script>

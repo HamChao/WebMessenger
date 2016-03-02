@@ -2,9 +2,11 @@ var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
+var formidable = require('formidable');
 
 // Store all CSS in css folder
 app.use(express.static('css'));
+app.use(express.static('uploads'));
 
 // For convert to markdown
 var md = require("node-markdown").Markdown;
@@ -13,13 +15,22 @@ var md = require("node-markdown").Markdown;
 var messages = [];
 // Store users
 var users = [];
+var files_array  = [];
+var expiryTime = 8;
+
 
 // Store chat history method
-var storeMsg = function(author, msg){
-	messages.push({
-		author: author,
-		msg: msg
-	});
+// var storeMsg = function(author, msg){
+// 	messages.push({
+// 		author: author,
+// 		msg: msg
+// 	});
+// 	if(messages.length > 100){
+// 		messages.shift();
+// 	}
+// }
+var storeMsg = function(msgContent){
+	messages.push(msgContent);
 	if(messages.length > 100){
 		messages.shift();
 	}
@@ -45,13 +56,17 @@ var msgFormat = function(author, msg){
 	+ md(msg) + "</span></li>";
 	return content;
 }
+var imgFormat = function(author, imgPath){
+	var content = "<li><span class='author'>" + author + "</span><img src='"+imgPath+"' height='150'></img></li>";
+	return content;
+}
 
 io.on('connection', function(client){
 	console.log("Client connected.");
 
 	// Print chat history
-	messages.forEach(function(message){
-		client.emit('messages', msgFormat(message.author, message.msg));
+	messages.forEach(function(msgContent){
+		client.emit('messages', msgContent);
 	});
 
 	users.forEach(function(user){
@@ -62,9 +77,10 @@ io.on('connection', function(client){
 	client.on('messages', function(message){
 		console.log(message);
 		var username = client.username;
-		client.emit('messages', msgFormat(username, message));
-		client.broadcast.emit('messages', msgFormat(username, message));
-		storeMsg(username, message);
+		var msgContent = msgFormat(username, message);
+		client.emit('messages', msgContent);
+		client.broadcast.emit('messages', msgContent);
+		storeMsg(msgContent);
 	});
 
 	// Assign username value
@@ -92,26 +108,68 @@ app.get('/', function(request, response){
 
 server.listen(8080);
 
-// For upload
-var multer = require('multer');
+
+
+
+
+
+
 
 // Upload
-var storage = multer.diskStorage({
-  destination: function (req, file, callback) {
-    callback(null, './uploads');
-  },
-  filename: function (req, file, callback) {
-    callback(null, file.fieldname + '-' + Date.now());
-  }
-});
-var upload = multer({ storage : storage}).single('chat-attached');
+// route for uploading images asynchronously
+app.post('/api/uploadImage',function (req, res){
+	var imgdatetimenow = Date.now();
+	var form = new formidable.IncomingForm({
+      	uploadDir: __dirname + '/uploads',
+      	keepExtensions: true
+	});
 
-app.post('/api/image',function(req,res){
-    upload(req,res,function(err) {
-        if(err) {
-            return res.end("Error uploading file.");
-        }
-        res.end("File is uploaded");
+	form.on('end', function() {
+      res.end();
+    });
+    
+    form.parse(req,function(err,fields,files){
+		var data = { 
+				username : fields.username, 
+				userAvatar : fields.userAvatar, 
+				repeatMsg : true, 
+				hasFile : fields.hasFile, 
+				isImageFile : fields.isImageFile, 
+				istype : fields.istype, 
+				showme : fields.showme, 
+				dwimgsrc : fields.dwimgsrc, 
+				dwid : fields.dwid,
+				serverfilename : baseName(files.attached.path), 
+				msgTime : fields.msgTime,
+				filename : files.attached.name,
+				size : bytesToSize(files.attached.size)
+		};
+	    var image_file = { 
+		        dwid : fields.dwid,
+		        filename : files.attached.name,
+		        filetype : fields.istype,
+		        serverfilename : baseName(files.attached.path),
+		        serverfilepath : files.attached.path,
+		        expirytime : imgdatetimenow + (3600000 * expiryTime)           
+	    };
+	    files_array.push(image_file);
+	    var msgContent = imgFormat(data.username ,data.serverfilename);
+		io.sockets.emit('messages', msgContent);
+		storeMsg(msgContent);
     });
 });
 
+// Size Conversion
+function bytesToSize(bytes) {
+    var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    if (bytes == 0) return 'n/a';
+    var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+    if (i == 0) return bytes + ' ' + sizes[i]; 
+    return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+};
+//get file name from server file path
+function baseName(str)
+{
+   var base = new String(str).substring(str.lastIndexOf('/') + 1);     
+   return base;
+}
