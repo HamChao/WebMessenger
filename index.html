@@ -12,23 +12,20 @@
 		<div class="chat-panel">
 			<div class="row">
 				<div class="col-md-2">
-					<div class="chat-left" id="chatter_list">
-						
+					<div class="chat-left" id="user_list">	
 					</div>
 				</div>
 				<div class="col-md-10">
 					<div class="chat-right">
 						<div class="chat-body">
-							<ul class="list-unstyled" id="chat-list">
-							</ul>
 						</div>
 						<div class="chat-footer">
 							<form action="/api/uploadImage" id="chat_form" method="post" enctype="multipart/form-data">
 								<input type="text" id="message_input">
-								<input type="file" name="attached" id="attached">
+								<input type="file" name="attached" id="attached_input">
 								<input type="hidden" name="username" value="">
-								<input type="submit">
-								<span id = "status"></span>
+								<input type="submit" id="submit_btn">
+							<span id="status"></span>
 							</form>
 						</div>
 					</div>
@@ -40,45 +37,6 @@
 	<script src="socket.io/socket.io.js"></script>
 	<script src="//code.jquery.com/jquery-latest.min.js"></script>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
-	<script>
-		var server = io.connect('http://localhost:8080');
-		server.on('connect', function(){
-			var username = '';
-			while(username == ''){
-				username = prompt("What is your username?");
-			}
-			$('input[name=username]').val(username);
-			server.emit('join', username)
-		});
-		server.on('messages', function(message){
-			$('#chat-list').append(message);
-		});
-		server.on('add chatter', function(username){
-			$('#chatter_list').append("<p id='"+username+"'>"+username+"</p>");
-		})
-		server.on('remove chatter', function(username){
-			$('#chatter_list p#'+username).remove();
-		});
-		$('#chat_form').submit(function(e){
-			var message = $('#message_input').val();
-			var attached = $('#attached').val();
-			if(message != ''){
-				server.emit('messages', message);
-				$('#message_input').val('');
-			} else if (attached != '') {
-				$("#status").empty().text("File is uploading...");
-			    $(this).ajaxSubmit({
-			        error: function(xhr) {
-					    status('Error: ' + xhr.status);
-			        },
-
-			        success: function(response) {
-					    $("#status").empty().text(response);
-			        }
-			    });
-			}
-			return false;
-		});
-	</script>
+	<script src="main.js"></script>		
 </body>
 </html>

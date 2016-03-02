@@ -1,7 +1,7 @@
 {
   "name": "web-messenger",
   "version": "1.0.0",
-  "description": "Simple Web Messenger through Node.js",
+  "description": "Simple Web Messenger based on Node.js",
   "main": "index.js",
   "repository": {
     "type": "git",
@@ -16,7 +16,6 @@
   "dependencies": {
     "express": "^4.13.4",
     "formidable": "^1.0.17",
-    "multer": "^1.1.0",
     "node-markdown": "^0.1.1",
     "socket.io": "^1.4.5"
   }

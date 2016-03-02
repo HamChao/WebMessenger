@@ -1,102 +1,60 @@
-var express = require('express');
-var app = express();
-var server = require('http').createServer(app);
-var io = require('socket.io')(server);
-var formidable = require('formidable');
+var express = require('express');					// express module
+var app = express();								// initialize express app
+var server = require('http').createServer(app);		// create http server
+var io = require('socket.io')(server);				// using socket.io in server
+var formidable = require('formidable');				// file upload module
+var md = require("node-markdown").Markdown;			// markdown module
 
-// Store all CSS in css folder
-app.use(express.static('css'));
-app.use(express.static('uploads'));
+// Variables
+var messages = [];			// store messages
+var usernames = [];			// store users
+var files_array  = [];		//
+var expiryTime = 8;			//
 
-// For convert to markdown
-var md = require("node-markdown").Markdown;
+// Static file configuration
+app.use(express.static('js'));			// import all files in js directory
+app.use(express.static('css'));			// import all files in css directory
+app.use(express.static('uploads'));		// import all files in uploads directory
 
-// Store chat history
-var messages = [];
-// Store users
-var users = [];
-var files_array  = [];
-var expiryTime = 8;
+// Server listen on port 8080
+server.listen(8080);
 
-
-// Store chat history method
-// var storeMsg = function(author, msg){
-// 	messages.push({
-// 		author: author,
-// 		msg: msg
-// 	});
-// 	if(messages.length > 100){
-// 		messages.shift();
-// 	}
-// }
-var storeMsg = function(msgContent){
-	messages.push(msgContent);
-	if(messages.length > 100){
-		messages.shift();
-	}
-}
-
-// Store user method
-var storeUser = function(username){
-	users.push({username: username});
-}
-// Remove user Method
-var removeUser = function(username){
-	for (i=0; i<users.length; i++){
-		if(users[i].username == username){
-			users.splice(i,1);
-			break;
-		}
-	}
-};
-
-// Message format
-var msgFormat = function(author, msg){
-	var content = "<li><span class='author'>" + author + "</span><span class='msg-body'>"  
-	+ md(msg) + "</span></li>";
-	return content;
-}
-var imgFormat = function(author, imgPath){
-	var content = "<li><span class='author'>" + author + "</span><img src='"+imgPath+"' height='150'></img></li>";
-	return content;
-}
-
-io.on('connection', function(client){
-	console.log("Client connected.");
+// On client connect
+io.on('connection', function(socket){
+	console.log("Client connected...");
 
 	// Print chat history
 	messages.forEach(function(msgContent){
-		client.emit('messages', msgContent);
+		socket.emit('send message', msgContent);
 	});
-
-	users.forEach(function(user){
-		client.emit('add chatter', user.username);
+	// Print username
+	usernames.forEach(function(username){
+		socket.emit('add user', username);
 	});
 
 	// Sent/Receive chat messages
-	client.on('messages', function(message){
+	socket.on('send message', function(message){
 		console.log(message);
-		var username = client.username;
+		var username = socket.username;
 		var msgContent = msgFormat(username, message);
-		client.emit('messages', msgContent);
-		client.broadcast.emit('messages', msgContent);
+		socket.emit('send message', msgContent);
+		socket.broadcast.emit('send message', msgContent);
 		storeMsg(msgContent);
 	});
 
 	// Assign username value
-	client.on('join', function(username){
-		client.username = username;
-		client.emit('add chatter', username);
-		client.broadcast.emit('add chatter', username);
+	socket.on('join', function(username){
+		socket.username = username;
+		socket.emit('add user', username);
+		socket.broadcast.emit('add user', username);
 		storeUser(username);
 	});
 
 	// Remove user when disconnect
-	client.on('disconnect', function(){
-		console.log(client.username);
-		client.emit('remove chatter', client.username);
-		client.broadcast.emit('remove chatter', client.username);
-		removeUser(client.username);
+	socket.on('disconnect', function(){
+		socket.emit('remove user', socket.username);
+		socket.broadcast.emit('remove user', socket.username);
+		removeUser(socket.username);
 	});
 
 });
@@ -106,17 +64,7 @@ app.get('/', function(request, response){
 	response.sendFile(__dirname + '/index.html');
 });
 
-server.listen(8080);
-
-
-
-
-
-
-
-
 // Upload
-// route for uploading images asynchronously
 app.post('/api/uploadImage',function (req, res){
 	var imgdatetimenow = Date.now();
 	var form = new formidable.IncomingForm({
@@ -154,10 +102,48 @@ app.post('/api/uploadImage',function (req, res){
 	    };
 	    files_array.push(image_file);
 	    var msgContent = imgFormat(data.username ,data.serverfilename);
-		io.sockets.emit('messages', msgContent);
+		io.sockets.emit('send message', msgContent);
 		storeMsg(msgContent);
     });
 });
+
+
+// Method
+// Store chat history
+var storeMsg = function(msgContent){
+	messages.push(msgContent);
+	if(messages.length > 100){
+		messages.shift();
+	}
+}
+
+// Store user
+var storeUser = function(username){
+	usernames.push(username);
+}
+
+// Remove user
+var removeUser = function(username){
+	console.log(username);
+	for (i=0; i<usernames.length; i++){
+		if(usernames[i] == username){
+			usernames.splice(i,1);
+			break;
+		}
+	}
+};
+
+// Message format
+var msgFormat = function(author, msg){
+	var content = "<div class='media'><div class='media-left'><span class='author'>" + author + "</span></div><div class='media-body'><span class='msg-body'>" + md(msg) + "</span></div></div>";
+	return content;
+}
+
+// Image format
+var imgFormat = function(author, imgPath){
+	var content = "<div class='media'><div class='media-left'><span class='author'>" + author + "</span></div><div class='media-body'><img src='"+imgPath+"' height='150'></img></div></div>";
+	return content;
+}
 
 // Size Conversion
 function bytesToSize(bytes) {
@@ -167,6 +153,7 @@ function bytesToSize(bytes) {
     if (i == 0) return bytes + ' ' + sizes[i]; 
     return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
 };
+
 //get file name from server file path
 function baseName(str)
 {
