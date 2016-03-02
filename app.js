@@ -96,7 +96,7 @@ server.listen(8080);
 var multer = require('multer');
 
 // Upload
-var storage =   multer.diskStorage({
+var storage = multer.diskStorage({
   destination: function (req, file, callback) {
     callback(null, './uploads');
   },

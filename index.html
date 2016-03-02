@@ -27,6 +27,7 @@
 								<input type="text" id="message_input">
 								<input type="file" name="chat-attached" id="attached">
 								<input type="submit">
+								<span id = "status"></span>
 							</form>
 						</div>
 					</div>
@@ -37,6 +38,7 @@
 
 	<script src="socket.io/socket.io.js"></script>
 	<script src="//code.jquery.com/jquery-latest.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.form/3.51/jquery.form.min.js"></script>
 	<script>
 		var server = io.connect('http://localhost:8080');
 		server.on('connect', function(){
@@ -60,8 +62,20 @@
 			if(message != ''){
 				server.emit('messages', message);
 				$('#message_input').val('');
-				return false;
 			}
+			
+			$("#status").empty().text("File is uploading...");
+		    $(this).ajaxSubmit({
+		        error: function(xhr) {
+				    status('Error: ' + xhr.status);
+		        },
+
+		        success: function(response) {
+				    $("#status").empty().text(response);
+		            console.log(response);
+		        }
+		    });
+			return false;
 		});
 	</script>
 </body>
