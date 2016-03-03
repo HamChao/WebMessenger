@@ -8,8 +8,6 @@ var md = require("node-markdown").Markdown;			// markdown module
 // Variables
 var messages = [];			// store messages
 var usernames = [];			// store users
-var files_array  = [];		//
-var expiryTime = 8;			//
 
 // Static file configuration
 app.use(express.static('public/js'));			// import all files in js directory
@@ -78,28 +76,10 @@ app.post('/api/uploadImage',function (req, res){
     form.parse(req,function(err,fields,files){
 		var data = { 
 				username : fields.username, 
-				userAvatar : fields.userAvatar, 
-				repeatMsg : true, 
-				hasFile : fields.hasFile, 
-				isImageFile : fields.isImageFile, 
-				istype : fields.istype, 
-				showme : fields.showme, 
-				dwimgsrc : fields.dwimgsrc, 
-				dwid : fields.dwid,
 				serverfilename : baseName(files.attached.path), 
-				msgTime : fields.msgTime,
 				filename : files.attached.name,
 				size : bytesToSize(files.attached.size)
 		};
-	    var image_file = { 
-		        dwid : fields.dwid,
-		        filename : files.attached.name,
-		        filetype : fields.istype,
-		        serverfilename : baseName(files.attached.path),
-		        serverfilepath : files.attached.path,
-		        expirytime : imgdatetimenow + (3600000 * expiryTime)           
-	    };
-	    files_array.push(image_file);
 	    var msgContent = imgFormat(data.username ,data.serverfilename);
 		io.sockets.emit('send message', msgContent);
 		storeMsg(msgContent);
