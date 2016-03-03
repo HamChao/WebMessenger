@@ -38,14 +38,14 @@ Step 5: go to your browser and enter url <http://localhost:8080>
 1.0.0
 
 
-## Module
+## Node.js Modules
+* [express] - Fast node.js network app framework.
+* [formidable] - Parsing from data, especially uploads.
+* [socket.io] - Enables real time bidirectional server/client.
 
+## CSS Frameworks
 * [Bootstrap] - Frontend framework, one framework every device.
-* [Node.js] - evented I/O for the backend.
-* [Express] - fast node.js network app framework.
-* [jQuery] - javascript library.
-* [formidable] - module parsing from data, especially uploads.
-* [socket.io] - enables real time bidirectional server/client.
+* [jQuery] - Javascript library.
 
 
 ## Contact

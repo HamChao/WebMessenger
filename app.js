@@ -12,9 +12,9 @@ var files_array  = [];		//
 var expiryTime = 8;			//
 
 // Static file configuration
-app.use(express.static('js'));			// import all files in js directory
-app.use(express.static('css'));			// import all files in css directory
-app.use(express.static('uploads'));		// import all files in uploads directory
+app.use(express.static('public/js'));			// import all files in js directory
+app.use(express.static('public/css'));			// import all files in css directory
+app.use(express.static('public/uploads'));		// import all files in uploads directory
 
 // Server listen on port 8080
 server.listen(8080);
@@ -34,7 +34,6 @@ io.on('connection', function(socket){
 
 	// Sent/Receive chat messages
 	socket.on('send message', function(message){
-		console.log(message);
 		var username = socket.username;
 		var msgContent = msgFormat(username, message);
 		socket.emit('send message', msgContent);
@@ -61,14 +60,14 @@ io.on('connection', function(socket){
 
 // Connect to index.html
 app.get('/', function(request, response){
-	response.sendFile(__dirname + '/index.html');
+	response.sendFile(__dirname + '/public/index.html');
 });
 
 // Upload
 app.post('/api/uploadImage',function (req, res){
 	var imgdatetimenow = Date.now();
 	var form = new formidable.IncomingForm({
-      	uploadDir: __dirname + '/uploads',
+      	uploadDir: __dirname + '/public/uploads',
       	keepExtensions: true
 	});
 
